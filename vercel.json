@@ -2,10 +2,7 @@
   "version": 2,
   "cleanUrls": false,
   "functions": {
-    "api/*.php": {
-      "runtime": "vercel-php@0.7.1"
-    },
-    "api/admin/*.php": {
+    "api/router.php": {
       "runtime": "vercel-php@0.7.1"
     }
   },
@@ -19,12 +16,8 @@
       "dest": "/admin/$1/$2"
     },
     {
-      "src": "/admin/(.*)",
-      "dest": "/api/admin/$1"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/api/$1"
+      "dest": "/api/router.php"
     }
   ]
 }
