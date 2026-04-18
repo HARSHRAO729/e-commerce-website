@@ -8,7 +8,7 @@
   },
   "routes": [
     {
-      "src": "/(assets|css|js|img|font|brandsimage)/(.*)",
+      "src": "/(assets|css|js|font|brandsimage|img)/(.*)",
       "dest": "/$1/$2"
     },
     {
