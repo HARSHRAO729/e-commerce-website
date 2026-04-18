@@ -22,7 +22,7 @@ Nexus Elite is a modern, high-conversion e-commerce marketplace designed with a 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/gounderdivakaran-boop/e-commerce-website.git
+   git clone https://github.com/gounderdivakaran08-lang/DBMS.git
    ```
 2. Move the files to your local server (e.g., XAMPP `htdocs`).
 3. Import the database:

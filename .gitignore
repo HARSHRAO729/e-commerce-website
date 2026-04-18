@@ -1,0 +1,12 @@
+# Database backups
+*.sql
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Config files (Optional: keep if you want to share the template)
+# includes/config.php
+
+# PHP logs
+*.log
