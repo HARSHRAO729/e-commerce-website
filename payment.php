@@ -12,29 +12,46 @@ endif;
 //Order details
 if(isset($_POST['submit']))
 {
-$orderno= mt_rand(100000000,999999999);
-$userid=$_SESSION['id'];
-$address=$_SESSION['address'];
-$totalamount=$_SESSION['gtotal'];
-$txntype=$_POST['paymenttype'];
-$txnno=$_POST['txnnumber'];
-$query=mysqli_query($con,"insert into orders(orderNumber,userId,addressId,totalAmount,txnType,txnNumber) values('$orderno','$userid','$address','$totalamount','$txntype','$txnno')");
-if($query)
-{
-
-$sql="insert into ordersdetails (userId,productId,quantity) select userID,productId,productQty from cart where userID='$userid';";
-$sql.="update ordersdetails set orderNumber='$orderno' where userId='$userid' and orderNumber is null;";
-$sql.="delete from  cart where userID='$userid'";
-$result = mysqli_multi_query($con, $sql);
-if ($query) {
-unset($_SESSION['address']);
-unset($_SESSION['gtotal']);    
-echo '<script>alert("Your order successfully placed. Order number is "+"'.$orderno.'")</script>';
-    echo "<script type='text/javascript'> document.location ='my-orders.php'; </script>";
-} } else{
-echo "<script>alert('Something went wrong. Please try again');</script>";
-    echo "<script type='text/javascript'> document.location ='payment.php'; </script>";
-} }
+    $orderno = mt_rand(100000000,999999999);
+    $userid = $_SESSION['id'];
+    $address = $_SESSION['address'];
+    $totalamount = $_SESSION['gtotal'];
+    $txntype = $_POST['paymenttype'];
+    $txnno = $_POST['txnnumber'];
+    
+    // Begin Transaction
+    mysqli_begin_transaction($con);
+    
+    try {
+        $stmt = mysqli_prepare($con, "INSERT INTO orders(orderNumber,userId,addressId,totalAmount,txnType,txnNumber) VALUES(?,?,?,?,?,?)");
+        mysqli_stmt_bind_param($stmt, "siidss", $orderno, $userid, $address, $totalamount, $txntype, $txnno);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+        
+        $stmt2 = mysqli_prepare($con, "INSERT INTO ordersdetails (userId,productId,quantity,orderNumber) SELECT userId,productId,productQty, ? FROM cart WHERE userId=?");
+        mysqli_stmt_bind_param($stmt2, "si", $orderno, $userid);
+        mysqli_stmt_execute($stmt2);
+        mysqli_stmt_close($stmt2);
+        
+        $stmt3 = mysqli_prepare($con, "DELETE FROM cart WHERE userId=?");
+        mysqli_stmt_bind_param($stmt3, "i", $userid);
+        mysqli_stmt_execute($stmt3);
+        mysqli_stmt_close($stmt3);
+        
+        mysqli_commit($con);
+        
+        unset($_SESSION['address']);
+        unset($_SESSION['gtotal']);
+        $_SESSION['cart'] = array();
+        
+        echo '<script>alert("Your order successfully placed. Order number is "+"'.$orderno.'")</script>';
+        echo "<script type='text/javascript'> document.location ='my-orders.php'; </script>";
+    } catch (Exception $e) {
+        mysqli_rollback($con);
+        echo "<script>alert('Something went wrong. Please try again');</script>";
+        echo "<script type='text/javascript'> document.location ='payment.php'; </script>";
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

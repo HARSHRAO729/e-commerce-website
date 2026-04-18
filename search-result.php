@@ -2,38 +2,24 @@
 session_start();
 error_reporting(0);
 include('includes/config.php');
-$find="%{$_POST['product']}%";
-if(isset($_GET['action']) && $_GET['action']=="add"){
-	$id=intval($_GET['id']);
-	if(isset($_SESSION['cart'][$id])){
-		$_SESSION['cart'][$id]['quantity']++;
-	}else{
-		$sql_p="SELECT * FROM products WHERE id={$id}";
-		$query_p=mysqli_query($con,$sql_p);
-		if(mysqli_num_rows($query_p)!=0){
-			$row_p=mysqli_fetch_array($query_p);
-			$_SESSION['cart'][$row_p['id']]=array("quantity" => 1, "price" => $row_p['productPrice']);
-						echo "<script>alert('Product has been added to the cart')</script>";
-		echo "<script type='text/javascript'> document.location ='my-cart.php'; </script>";
-		}else{
-			$message="Product ID is invalid";
-		}
-	}
-}
 // COde for Wishlist
 if(isset($_GET['pid']) && $_GET['action']=="wishlist" ){
-	if(strlen($_SESSION['login'])==0)
+    if(strlen($_SESSION['login'])==0)
     {   
-header('location:login.php');
+        header('location:login.php');
+    }
+    else
+    {
+        $pid=$_GET['pid'];
+        $uid=$_SESSION['id'];
+        $stmt = mysqli_prepare($con, "INSERT INTO wishlist(userId,productId) VALUES(?, ?)");
+        mysqli_stmt_bind_param($stmt, "ii", $uid, $pid);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+        header('location:my-wishlist.php');
+    }
 }
-else
-{
-mysqli_query($con,"insert into wishlist(userId,productId) values('".$_SESSION['id']."','".$_GET['pid']."')");
-echo "<script>alert('Product aaded in wishlist');</script>";
-header('location:my-wishlist.php');
-
-}
-}
+$find="%".$_POST['product']."%";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -192,7 +178,10 @@ while($row=mysqli_fetch_array($sql))
 							<div class="category-product  inner-top-vs">
 								<div class="row">									
 			<?php
-$ret=mysqli_query($con,"select * from products where productName like '$find'");
+$stmt = mysqli_prepare($con, "SELECT * FROM products WHERE productName LIKE ?");
+mysqli_stmt_bind_param($stmt, "s", $find);
+mysqli_stmt_execute($stmt);
+$ret = mysqli_stmt_get_result($stmt);
 $num=mysqli_num_rows($ret);
 if($num>0)
 {

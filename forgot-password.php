@@ -5,30 +5,34 @@ include('includes/config.php');
 
 if(isset($_POST['change']))
 {
-   $email=mysqli_real_escape_string($con, $_POST['email']);
-    $contact=mysqli_real_escape_string($con, $_POST['contact']);
+    $email=$_POST['email'];
+    $contact=$_POST['contact'];
     $password=password_hash($_POST['password'], PASSWORD_DEFAULT);
-$query=mysqli_query($con,"SELECT * FROM users WHERE email='$email' and contactno='$contact'");
-$num=mysqli_fetch_array($query);
-if($num>0)
-{
-$extra="forgot-password.php";
-mysqli_query($con,"update users set password='$password' WHERE email='$email' and contactno='$contact' ");
-$host=$_SERVER['HTTP_HOST'];
-$uri=rtrim(dirname($_SERVER['PHP_SELF']),'/\\');
-header("location:http://$host$uri/$extra");
-$_SESSION['errmsg']="Password Changed Successfully";
-exit();
-}
-else
-{
-$extra="forgot-password.php";
-$host  = $_SERVER['HTTP_HOST'];
-$uri  = rtrim(dirname($_SERVER['PHP_SELF']),'/\\');
-header("location:http://$host$uri/$extra");
-$_SESSION['errmsg']="Invalid email id or Contact no";
-exit();
-}
+    
+    $stmt = mysqli_prepare($con, "SELECT id FROM users WHERE email=? AND contactno=?");
+    mysqli_stmt_bind_param($stmt, "ss", $email, $contact);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $num = mysqli_fetch_array($result);
+    
+    if($num)
+    {
+        $upd_stmt = mysqli_prepare($con, "UPDATE users SET password=? WHERE email=? AND contactno=?");
+        mysqli_stmt_bind_param($upd_stmt, "sss", $password, $email, $contact);
+        mysqli_stmt_execute($upd_stmt);
+        mysqli_stmt_close($upd_stmt);
+        
+        $_SESSION['errmsg']="Password Changed Successfully";
+        header("location:forgot-password.php");
+        exit();
+    }
+    else
+    {
+        $_SESSION['errmsg']="Invalid email id or Contact no";
+        header("location:forgot-password.php");
+        exit();
+    }
+    mysqli_stmt_close($stmt);
 }
 
 

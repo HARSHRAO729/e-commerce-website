@@ -387,7 +387,7 @@ while($row=mysqli_fetch_array($query))
 				<tr>
 					<td>
 						<div class="cart-checkout-btn pull-right">
-							<button type="submit" name="ordersubmit" class="btn btn-primary">PROCCED TO CHEKOUT</button>
+							<button type="submit" name="ordersubmit" class="btn btn-primary">PROCEED TO CHECKOUT</button>
 						
 						</div>
 					</td>

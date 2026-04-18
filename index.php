@@ -16,7 +16,6 @@ if(isset($_GET['action']) && $_GET['action']=="add"){
 			$message="Product ID is invalid";
 		}
 	}
-		echo "<script>alert('Product has been added to the cart')</script>";
 		echo "<script type='text/javascript'> document.location ='my-cart.php'; </script>";
 }
 
@@ -59,15 +58,17 @@ if(isset($_GET['action']) && $_GET['action']=="add"){
 		<link href="assets/css/orange.css" rel="alternate stylesheet" title="Orange color">
 		<link href="assets/css/dark-green.css" rel="alternate stylesheet" title="Darkgreen color">
 		<link rel="stylesheet" href="assets/css/font-awesome.min.css">
-		<link href='http://fonts.googleapis.com/css?family=Roboto:300,400,500,700' rel='stylesheet' type='text/css'>
-		
-		<!-- Favicon -->
-		<link rel="shortcut icon" href="assets/images/favicon.ico">
+	    <!-- Optimized Fonts -->
+	    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+	    
+	    <!-- Modern CSS Design System -->
+	    <link rel="stylesheet" href="assets/css/modern-premium.css">
+	    
+	    <!-- Favicon -->
+	    <link rel="shortcut icon" href="assets/images/favicon.ico">
 
 	</head>
     <body class="cnt-home">
-	
-		
 	
 		<!-- ============================================== HEADER ============================================== -->
 <header class="header-style-1">
@@ -89,26 +90,22 @@ if(isset($_GET['action']) && $_GET['action']=="add"){
 			</div><!-- /.sidemenu-holder -->	
 			
 			<div class="col-xs-12 col-sm-12 col-md-9 homebanner-holder">
-				<!-- ========================================== SECTION – HERO ========================================= -->
+				<!-- ========================================== SECTION – MODERN HERO ========================================= -->
 			
-<div id="hero" class="homepage-slider3">
-	<div id="owl-main" class="owl-carousel owl-inner-nav owl-ui-sm">
-		<div class="full-width-slider">	
-			<div class="item" style="background-image: url(assets/images/sliders/slider1.png);">
-				<!-- /.container-fluid -->
-			</div><!-- /.item -->
-		</div><!-- /.full-width-slider -->
-	    
-	    <div class="full-width-slider">
-			<div class="item full-width-slider" style="background-image: url(assets/images/sliders/slider2.png);">
-			</div><!-- /.item -->
-		</div><!-- /.full-width-slider -->
-
-	</div><!-- /.owl-carousel -->
+<div class="hero-section">
+	<div class="hero-content">
+		<span class="badge" style="background-color: var(--secondary); color: white; margin-bottom: 20px; font-weight: 700; padding: 10px 20px; border-radius: 30px;">GLOBAL FLAGSHIP MARKETPLACE</span>
+		<h1>Where Premium Meets Perfection.</h1>
+		<p>Welcome to Nexus Elite—your premier destination for curated luxury, cutting-edge technology, and unparalleled lifestyle essentials.</p>
+		<div class="buttons" style="margin-top: 35px;">
+			<a href="#all" class="btn btn-lg" style="background: white; color: var(--primary); border-radius: 12px; font-weight: 800; padding: 15px 35px; box-shadow: 0 10px 25px -5px rgba(255,255,255,0.4);">SHOP NOW</a>
+			<a href="#" class="btn btn-lg" style="color: white; border: 2px solid white; border-radius: 12px; font-weight: 700; padding: 15px 35px; margin-left: 15px; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px);">LEARN MORE</a>
+		</div>
+	</div>
 </div>
 			
 <!-- ========================================= SECTION – HERO : END ========================================= -->	
-				<!-- ============================================== INFO BOXES ============================================== -->
+
 <div class="info-boxes wow fadeInUp">
 	<div class="info-boxes-inner">
 		<div class="row">

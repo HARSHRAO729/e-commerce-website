@@ -13,7 +13,7 @@ if(isset($_GET['action']) && $_GET['action']=="add"){
 		if(mysqli_num_rows($query_p)!=0){
 			$row_p=mysqli_fetch_array($query_p);
 			$_SESSION['cart'][$row_p['id']]=array("quantity" => 1, "price" => $row_p['productPrice']);
-								echo "<script>alert('Product has been added to the cart')</script>";
+								// echo "<script>alert('Product has been added to the cart')</script>";
 		echo "<script type='text/javascript'> document.location ='my-cart.php'; </script>";
 		}else{
 			$message="Product ID is invalid";
@@ -22,17 +22,21 @@ if(isset($_GET['action']) && $_GET['action']=="add"){
 }
 // COde for Wishlist
 if(isset($_GET['pid']) && $_GET['action']=="wishlist" ){
-	if(strlen($_SESSION['login'])==0)
+    if(strlen($_SESSION['login'])==0)
     {   
-header('location:login.php');
-}
-else
-{
-mysqli_query($con,"insert into wishlist(userId,productId) values('".$_SESSION['id']."','".$_GET['pid']."')");
-echo "<script>alert('Product aaded in wishlist');</script>";
-header('location:my-wishlist.php');
-
-}
+        header('location:login.php');
+    }
+    else
+    {
+        $pid=$_GET['pid'];
+        $uid=$_SESSION['id'];
+        $stmt = mysqli_prepare($con, "INSERT INTO wishlist(userId,productId) VALUES(?, ?)");
+        mysqli_stmt_bind_param($stmt, "ii", $uid, $pid);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+        echo "<script>alert('Product added in wishlist');</script>";
+        header('location:my-wishlist.php');
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -145,33 +149,32 @@ while($row=mysqli_fetch_array($sql))
 	            </div><!-- /.sidebar-module-container -->
             </div><!-- /.sidebar -->
 			<div class='col-md-9'>
-					<!-- ========================================== SECTION – HERO ========================================= -->
-
-	<div id="category" class="category-carousel hidden-xs">
-		<div class="item">	
-			<div class="image">
-				<img src="assets/images/banners/cat-banner-2.jpg" alt="" class="img-responsive">
-			</div>
-			<div class="container-fluid">
-				<div class="caption vertical-top text-left">
-					<div class="big-text">
-						<br />
+				<!-- ========================================== SECTION – HERO (PREMIUM UPGRADE) ========================================= -->
+				<div id="category" class="category-carousel hidden-xs" style="margin-bottom: 30px;">
+					<div class="item" style="position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">	
+						<div class="image">
+							<img src="assets/images/banners/cat-banner-1.png" alt="" class="img-responsive" style="width: 100%; height: 280px; object-fit: cover;">
+						</div>
+						<div class="container-fluid" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; background: linear-gradient(90deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%);">
+							<div class="caption vertical-top text-left" style="padding-left: 50px;">
+								<div class="big-text" style="color: #fff; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 3.5rem; text-transform: uppercase; letter-spacing: 2px;">
+									<?php 
+										$stmt = mysqli_prepare($con, "SELECT subcategory FROM subcategory WHERE id = ?");
+										mysqli_stmt_bind_param($stmt, "i", $cid);
+										mysqli_stmt_execute($stmt);
+										$res = mysqli_stmt_get_result($stmt);
+										if($row = mysqli_fetch_array($res)) {
+											echo htmlentities($row['subcategory']);
+										}
+									?>
+								</div>
+								<div class="excerpt-now" style="color: rgba(255,255,255,0.9); font-family: 'Outfit', sans-serif; font-size: 1.2rem; margin-top: 10px; border-left: 4px solid #f33; padding-left: 15px;">
+									Premium selection in our finest categories.
+								</div>
+							</div><!-- /.caption -->
+						</div><!-- /.container-fluid -->
 					</div>
-
-					       <?php $sql=mysqli_query($con,"select subcategory  from subcategory where id='$cid'");
-while($row=mysqli_fetch_array($sql))
-{
-    ?>
-
-					<div class="excerpt hidden-sm hidden-md">
-						<?php echo htmlentities($row['subcategory']);?>
-					</div>
-			<?php } ?>
-			
-				</div><!-- /.caption -->
-			</div><!-- /.container-fluid -->
-		</div>
-</div>
+				</div>
 
 				<div class="search-result-container">
 					<div id="myTabContent" class="tab-content">
@@ -179,12 +182,15 @@ while($row=mysqli_fetch_array($sql))
 							<div class="category-product  inner-top-vs">
 								<div class="row">									
 			<?php
-$ret=mysqli_query($con,"select * from products where subCategory='$cid'");
+$stmt = mysqli_prepare($con, "SELECT * FROM products WHERE subCategory=?");
+mysqli_stmt_bind_param($stmt, "i", $cid);
+mysqli_stmt_execute($stmt);
+$ret = mysqli_stmt_get_result($stmt);
 $num=mysqli_num_rows($ret);
 if($num>0)
 {
 while ($row=mysqli_fetch_array($ret)) 
-{?>							
+{?>	
 		<div class="col-sm-6 col-md-4 wow fadeInUp">
 			<div class="products">				
 	<div class="product">		

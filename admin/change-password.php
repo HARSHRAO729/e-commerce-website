@@ -1,5 +1,7 @@
-
 <?php
+ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+error_reporting(E_ALL);
 session_start();
 include('include/config.php');
 if(strlen($_SESSION['alogin'])==0)
@@ -13,19 +15,31 @@ $currentTime = date( 'd-m-Y h:i:s A', time () );
 
 if(isset($_POST['submit']))
 {
-$username = $_SESSION['alogin'];
-$sql=mysqli_query($con,"SELECT password FROM admin where username='$username'");
-$num=mysqli_fetch_array($sql);
-if($num && (password_verify($_POST['password'], $num['password']) || $num['password'] === md5($_POST['password'])))
-{
- $newHash = password_hash($_POST['newpassword'], PASSWORD_DEFAULT);
- $con=mysqli_query($con,"update admin set password='$newHash', updationDate='$currentTime' where username='$username'");
-$_SESSION['msg']="Password Changed Successfully !!";
-}
-else
-{
-$_SESSION['msg']="Old Password not match !!";
-}
+    $username = $_SESSION['alogin'];
+    $newpassword = $_POST['newpassword'];
+    $password = $_POST['password'];
+    
+    $stmt = mysqli_prepare($con, "SELECT password FROM admin WHERE username=?");
+    mysqli_stmt_bind_param($stmt, "s", $username);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $num = mysqli_fetch_array($result);
+    
+    if($num && (password_verify($password, $num['password']) || $num['password'] === md5($password)))
+    {
+        $newHash = password_hash($newpassword, PASSWORD_DEFAULT);
+        $upd_stmt = mysqli_prepare($con, "UPDATE admin SET password=?, updationDate=? WHERE username=?");
+        mysqli_stmt_bind_param($upd_stmt, "sss", $newHash, $currentTime, $username);
+        mysqli_stmt_execute($upd_stmt);
+        mysqli_stmt_close($upd_stmt);
+        
+        $_SESSION['msg']="Password Changed Successfully !!";
+    }
+    else
+    {
+        $_SESSION['msg']="Old Password not match !!";
+    }
+    mysqli_stmt_close($stmt);
 }
 ?>
 <!DOCTYPE html>

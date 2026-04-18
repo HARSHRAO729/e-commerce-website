@@ -35,13 +35,16 @@ header('location:my-wishlist.php');
 }
 if(isset($_POST['submit']))
 {
-	$qty=$_POST['quality'];
-	$price=$_POST['price'];
-	$value=$_POST['value'];
-	$name=$_POST['name'];
-	$summary=$_POST['summary'];
-	$review=$_POST['review'];
-	mysqli_query($con,"insert into productreviews(productId,quality,price,value,name,summary,review) values('$pid','$qty','$price','$value','$name','$summary','$review')");
+    $qty=$_POST['quality'];
+    $price=$_POST['price'];
+    $value=$_POST['value'];
+    $name=$_POST['name'];
+    $summary=$_POST['summary'];
+    $review=$_POST['review'];
+    $stmt = mysqli_prepare($con, "INSERT INTO productreviews(productId,quality,price,value,name,summary,review) VALUES(?,?,?,?,?,?,?)");
+    mysqli_stmt_bind_param($stmt, "iiiisss", $pid, $qty, $price, $value, $name, $summary, $review);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
 }
 
 
@@ -98,7 +101,10 @@ if(isset($_POST['submit']))
 	<div class="container">
 		<div class="breadcrumb-inner">
 <?php
-$ret=mysqli_query($con,"select category.categoryName as catname,subcategory.subcategory as subcatname,products.productName as pname from products join category on category.id=products.category join subcategory on subcategory.id=products.subcategory where products.id='$pid'");
+$stmt = mysqli_prepare($con, "SELECT category.categoryName as catname, subcategory.subcategory as subcatname, products.productName as pname FROM products JOIN category ON category.id=products.category JOIN subcategory ON subcategory.id=products.subcategory WHERE products.id=?");
+mysqli_stmt_bind_param($stmt, "i", $pid);
+mysqli_stmt_execute($stmt);
+$ret = mysqli_stmt_get_result($stmt);
 while ($rw=mysqli_fetch_array($ret)) {
 
 ?>
@@ -210,7 +216,10 @@ while ($rws=mysqli_fetch_array($ret)) {
 				</div>
 			</div><!-- /.sidebar -->
 <?php 
-$ret=mysqli_query($con,"select * from products where id='$pid'");
+$stmt = mysqli_prepare($con, "SELECT * FROM products WHERE id=?");
+mysqli_stmt_bind_param($stmt, "i", $pid);
+mysqli_stmt_execute($stmt);
+$ret = mysqli_stmt_get_result($stmt);
 while($row=mysqli_fetch_array($ret))
 {
 
@@ -593,7 +602,10 @@ while($rvw=mysqli_fetch_array($qry))
 	<div class="owl-carousel home-owl-carousel upsell-product custom-carousel owl-theme outer-top-xs">
 	   
 		<?php 
-$qry=mysqli_query($con,"select * from products where subCategory='$subcid' and category='$cid'");
+$stmt = mysqli_prepare($con, "SELECT * FROM products WHERE subCategory=? AND category=?");
+mysqli_stmt_bind_param($stmt, "ss", $subcid, $cid);
+mysqli_stmt_execute($stmt);
+$qry = mysqli_stmt_get_result($stmt);
 while($rw=mysqli_fetch_array($qry))
 {
 

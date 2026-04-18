@@ -18,11 +18,9 @@
 				<div class="col-xs-12 col-sm-12 col-md-3 logo-holder">
 					<!-- ============================================================= LOGO ============================================================= -->
 <div class="logo">
-	<a href="index.php">
-		
-		<h2>Shopping Portal</h2>
-
-	</a>
+    <a href="index.php">
+        <h2 style="font-weight: 800; color: #6366f1 !important; margin: 0; font-size: 26px; letter-spacing: -2px; text-transform: uppercase;">NEXUS <span style="color: #1e293b;">ELITE</span></h2>
+    </a>
 </div>		
 </div>
 <div class="col-xs-12 col-sm-12 col-md-6 top-search-holder">

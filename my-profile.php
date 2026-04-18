@@ -4,21 +4,26 @@ if(strlen($_SESSION['id'])==0)
 {   header('location:logout.php');
 }else{
 
-//For updating User  Profile
+//For updating User Profile
 if(isset($_POST['update']))
 {
-$name=mysqli_real_escape_string($con, $_POST['fullname']);
-$uid=$_SESSION['id'];
-$contactno=mysqli_real_escape_string($con, $_POST['contactnumber']);
-$query=mysqli_query($con,"update users set name='$name',contactno='$contactno' where id='$uid'");
-if($query)
-{
-    echo "<script>alert('Profile Updated successfully');</script>";
-    echo "<script type='text/javascript'> document.location ='my-profile.php'; </script>";
-}else{
-echo "<script>alert('Something went wrong. Please try again.');</script>";
-    echo "<script type='text/javascript'> document.location ='my-profile.php'; </script>";
-} }
+    $name=$_POST['fullname'];
+    $uid=$_SESSION['id'];
+    $contactno=$_POST['contactnumber'];
+    
+    $stmt = mysqli_prepare($con, "UPDATE users SET name=?, contactno=? WHERE id=?");
+    mysqli_stmt_bind_param($stmt, "ssi", $name, $contactno, $uid);
+    
+    if(mysqli_stmt_execute($stmt))
+    {
+        echo "<script>alert('Profile Updated successfully');</script>";
+        echo "<script type='text/javascript'> document.location ='my-profile.php'; </script>";
+    } else {
+        echo "<script>alert('Something went wrong. Please try again.');</script>";
+        echo "<script type='text/javascript'> document.location ='my-profile.php'; </script>";
+    }
+    mysqli_stmt_close($stmt);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -46,9 +51,11 @@ echo "<script>alert('Something went wrong. Please try again.');</script>";
 
 <?php 
 $uid=$_SESSION['id'];
-$query=mysqli_query($con,"select * from users where id='$uid'");
+$stmt = mysqli_prepare($con, "SELECT * FROM users WHERE id=?");
+mysqli_stmt_bind_param($stmt, "i", $uid);
+mysqli_stmt_execute($stmt);
+$query = mysqli_stmt_get_result($stmt);
 while($result=mysqli_fetch_array($query)){
-
 ?>
                 <div class="text-center text-white">
                     <h1 class="display-4 fw-bolder"><?php echo htmlentities($result['name']);?>'s Profile</h1>

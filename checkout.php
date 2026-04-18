@@ -4,13 +4,70 @@ error_reporting(0);
 if(strlen($_SESSION['id'])==0)
 {   header('location:logout.php');
 }else{
+// Sync session cart to database cart table
+$uid = $_SESSION['id'];
+if(!empty($_SESSION['cart'])){
+    foreach($_SESSION['cart'] as $pid => $val){
+        $quantity = $val['quantity'];
+        $check_stmt = mysqli_prepare($con, "SELECT id FROM cart WHERE userId=? AND productId=?");
+        mysqli_stmt_bind_param($check_stmt, "ii", $uid, $pid);
+        mysqli_stmt_execute($check_stmt);
+        $result = mysqli_stmt_get_result($check_stmt);
+        if(mysqli_num_rows($result) == 0){
+            $ins_stmt = mysqli_prepare($con, "INSERT INTO cart(userId,productId,productQty) VALUES(?,?,?)");
+            mysqli_stmt_bind_param($ins_stmt, "iii", $uid, $pid, $quantity);
+            mysqli_stmt_execute($ins_stmt);
+            mysqli_stmt_close($ins_stmt);
+        } else {
+            $upd_stmt = mysqli_prepare($con, "UPDATE cart SET productQty=? WHERE userId=? AND productId=?");
+            mysqli_stmt_bind_param($upd_stmt, "iii", $quantity, $uid, $pid);
+            mysqli_stmt_execute($upd_stmt);
+            mysqli_stmt_close($upd_stmt);
+        }
+        mysqli_stmt_close($check_stmt);
+    }
+    // Remove items in DB not in session
+    $session_pids = array_keys($_SESSION['cart']);
+    $session_pids_str = implode(',', $session_pids);
+    mysqli_query($con, "DELETE FROM cart WHERE userId='$uid' AND productId NOT IN ($session_pids_str)");
+}
+
+// For Address Insertion
+if(isset($_POST['submit'])){
+    $baddress=$_POST['billingaddress'];
+    $bcity=$_POST['billingcity'];
+    $bstate=$_POST['billingstate'];
+    $bpincode=$_POST['billingpincode'];
+    $bcountry=$_POST['billingcountry'];
+    $saddress=$_POST['shippingaddress'];
+    $scity=$_POST['shippingcity'];
+    $sstate=$_POST['shippingstate'];
+    $spincode=$_POST['shippingpincode'];
+    $scountry=$_POST['shippingcountry'];
+    
+    $stmt = mysqli_prepare($con, "INSERT INTO addresses(userId,billingAddress,billingCity,billingState,billingPincode,billingCountry,shippingAddress,shippingCity,shippingState,shippingPincode,shippingCountry) VALUES(?,?,?,?,?,?,?,?,?,?,?)");
+    mysqli_stmt_bind_param($stmt, "issssssssss", $uid, $baddress, $bcity, $bstate, $bpincode, $bcountry, $saddress, $scity, $sstate, $spincode, $scountry);
+    
+    if(mysqli_stmt_execute($stmt)) {
+        echo "<script>alert('Address added successfully');</script>";
+        echo "<script type='text/javascript'> document.location ='checkout.php'; </script>";
+    }
+    mysqli_stmt_close($stmt);
+}
+
 // Code for Product deletion from  cart  
 if(isset($_GET['del']))
 {
-$wid=intval($_GET['del']);
-$query=mysqli_query($con,"delete from cart where id='$wid'");
- echo "<script>alert('Product deleted from cart.');</script>";
-echo "<script type='text/javascript'> document.location ='checkout.php'; </script>";
+    $wid=intval($_GET['del']);
+    // Fetch product id before deleting to remove from session
+    $get_pid = mysqli_query($con, "SELECT productId FROM cart WHERE id='$wid'");
+    if($row_p = mysqli_fetch_array($get_pid)){
+        $pid_to_del = $row_p['productId'];
+        unset($_SESSION['cart'][$pid_to_del]);
+    }
+    $query=mysqli_query($con,"delete from cart where id='$wid'");
+    echo "<script>alert('Product deleted from cart.');</script>";
+    echo "<script type='text/javascript'> document.location ='checkout.php'; </script>";
 }
 // For Address Insertion
 if(isset($_POST['submit'])){
@@ -27,7 +84,7 @@ $sstate=mysqli_real_escape_string($con, $_POST['sstate']);
 $spincode=mysqli_real_escape_string($con, $_POST['spincode']);
 $scountry=mysqli_real_escape_string($con, $_POST['scountry']);
 
-$sql=mysqli_query($con,"insert into addresses(userId,billingAddress,biilingCity,billingState,billingPincode,billingCountry,shippingAddress,shippingCity,shippingState,shippingPincode,shippingCountry) values('$uid','$baddress','$bcity','$bstate','$bpincode','$bcountry','$saddress','$scity','$sstate','$spincode','$scountry')");
+$sql=mysqli_query($con,"insert into addresses(userId,billingAddress,billingCity,billingState,billingPincode,billingCountry,shippingAddress,shippingCity,shippingState,shippingPincode,shippingCountry) values('$uid','$baddress','$bcity','$bstate','$bpincode','$bcountry','$saddress','$scity','$sstate','$spincode','$scountry')");
 if($sql)
 {
     echo "<script>alert('You Address added successfully');</script>";
@@ -102,6 +159,7 @@ if(isset($_POST['proceedpayment'])){
             </tr>
             <tbody>
 <?php
+$grantotal = 0;
 $uid=$_SESSION['id'];
 $ret=mysqli_query($con,"select products.productName as pname,products.productName as proid,products.productImage1 as pimage,products.productPrice as pprice,cart.productId as pid,cart.id as cartid,products.productPriceBeforeDiscount,cart.productQty from cart join products on products.id=cart.productId where cart.userId='$uid'");
 $num=mysqli_num_rows($ret);
@@ -155,18 +213,11 @@ else:
                     <th colspan="4"><h5>Billing Address</h5></th>
                 </tr>
             </thead>
-            <tr>
-                <thead>
-                    <th>#</th>
-                    <th width="250">Adresss</th>
-                    <th>City</th>
-                    <th>State</th>
-                    <th>Pincode</th>
-                    <th>Country</th>
-            
                 </thead>
             </tr>
-            </table>  
+            <tbody>
+            </tbody>
+        </table>  
 
 </div>
 <div class="col-6">
@@ -176,18 +227,11 @@ else:
                     <th colspan="4"><h5>Shipping Address</h5></th>
                 </tr>
             </thead>
-            <tr>
-                <thead>
-                    <th width="250">Adresss</th>
-                    <th>City</th>
-                    <th>State</th>
-                    <th>Pincode</th>
-                    <th>Country</th>
-            
                 </thead>
             </tr>
+            <tbody>
             </tbody>
-            </table> 
+        </table> 
 </div>
 </div>
 <!-- Fecthing Values-->
@@ -201,7 +245,7 @@ else:
                 <tr>
                     <td><input type="radio" name="selectedaddress" value="<?php echo $result['id'];?>" required></td>
                     <td width="250"><?php echo $result['billingAddress'];?></td>
-                    <td><?php echo $result['biilingCity'];?></td>
+                    <td><?php echo $result['billingCity'];?></td>
                     <td><?php echo $result['billingState'];?></td>
                     <td><?php echo $result['billingPincode'];?></td>
                     <td><?php echo $result['billingCountry'];?></td>
@@ -228,7 +272,7 @@ else:
 
 <?php } endif;?>
 <div align="right">
- <button class="btn-upper btn btn-primary" type="submit" name="proceedpayment">Procced for Payment</button>
+ <button class="btn-upper btn btn-primary" type="submit" name="proceedpayment">Proceed for Payment</button>
 </div>
 </form>
 

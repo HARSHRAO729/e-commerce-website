@@ -15,7 +15,7 @@ $num=mysqli_fetch_array($sql);
 if($num && (password_verify($currentpwd, $num['password']) || $num['password'] === md5($currentpwd)))
 {
  $newHash = password_hash($newpwd, PASSWORD_DEFAULT);
- $con=mysqli_query($con,"update users set password='$newHash' where id='$uid'");
+ $query=mysqli_query($con,"update users set password='$newHash' where id='$uid'");
 echo "<script>alert('Password Changed Successfully !!');</script>";
  echo "<script type='text/javascript'> document.location ='change-password.php'; </script>";
 }else{

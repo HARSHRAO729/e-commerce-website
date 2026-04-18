@@ -3,57 +3,71 @@ session_start();
 error_reporting(0);
 include('includes/config.php');
 // Code user Registration
-if(isset($_POST['submit']))
-{
-$name=mysqli_real_escape_string($con, $_POST['fullname']);
-$email=mysqli_real_escape_string($con, $_POST['emailid']);
-$contactno=mysqli_real_escape_string($con, $_POST['contactno']);
-$password=password_hash($_POST['password'], PASSWORD_DEFAULT);
-$query=mysqli_query($con,"insert into users(name,email,contactno,password) values('$name','$email','$contactno','$password')");
-if($query)
-{
-	echo "<script>alert('You are successfully register');</script>";
+if(isset($_POST['submit'])) {
+    $name = $_POST['fullname'];
+    $email = $_POST['emailid'];
+    $contactno = $_POST['contactno'];
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    
+    $stmt = mysqli_prepare($con, "INSERT INTO users(name, email, contactno, password) VALUES(?, ?, ?, ?)");
+    mysqli_stmt_bind_param($stmt, "ssss", $name, $email, $contactno, $password);
+    
+    if(mysqli_stmt_execute($stmt)) {
+        echo "<script>alert('You are successfully registered');</script>";
+    } else {
+        echo "<script>alert('Registration failed - please try again');</script>";
+    }
+    mysqli_stmt_close($stmt);
 }
-else{
-echo "<script>alert('Not register something went worng');</script>";
-}
-}
+
 // Code for User login
-if(isset($_POST['login']))
-{
-   $email=mysqli_real_escape_string($con, $_POST['email']);
-   $password=$_POST['password'];
-$query=mysqli_query($con,"SELECT * FROM users WHERE email='$email'");
-$num=mysqli_fetch_array($query);
-if($num>0 && (password_verify($password, $num['password']) || $num['password'] === md5($password)))
-{
-// Upgrade password hash if it was md5
-if ($num['password'] === md5($password)) {
-    $newHash = password_hash($password, PASSWORD_DEFAULT);
-    $userId = $num['id'];
-    mysqli_query($con, "UPDATE users SET password='$newHash' WHERE id='$userId'");
-}
-$extra="my-cart.php";
-$_SESSION['login']=$_POST['email'];
-$_SESSION['id']=$num['id'];
-$_SESSION['username']=$num['name'];
-$uip=$_SERVER['REMOTE_ADDR'];
-$status=1;
-$log=mysqli_query($con,"insert into userlog(userEmail,userip,status) values('$email','$uip','$status')");
-header("location:my-cart.php");
-exit();
-}
-else
-{
-$extra="login.php";
-$email=mysqli_real_escape_string($con, $_POST['email']);
-$uip=$_SERVER['REMOTE_ADDR'];
-$status=0;
-$log=mysqli_query($con,"insert into userlog(userEmail,userip,status) values('$email','$uip','$status')");
-header("location:login.php");
-$_SESSION['errmsg']="Invalid email id or Password";
-exit();
-}
+if(isset($_POST['login'])) {
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+    
+    $stmt = mysqli_prepare($con, "SELECT * FROM users WHERE email=?");
+    mysqli_stmt_bind_param($stmt, "s", $email);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $num = mysqli_fetch_array($result);
+    
+    if($num && (password_verify($password, $num['password']) || $num['password'] === md5($password))) {
+        // Upgrade password hash if it was md5
+        if ($num['password'] === md5($password)) {
+            $newHash = password_hash($password, PASSWORD_DEFAULT);
+            $userId = $num['id'];
+            $upd_stmt = mysqli_prepare($con, "UPDATE users SET password=? WHERE id=?");
+            mysqli_stmt_bind_param($upd_stmt, "si", $newHash, $userId);
+            mysqli_stmt_execute($upd_stmt);
+            mysqli_stmt_close($upd_stmt);
+        }
+        
+        $_SESSION['login'] = $email;
+        $_SESSION['id'] = $num['id'];
+        $_SESSION['username'] = $num['name'];
+        $uip = $_SERVER['REMOTE_ADDR'];
+        $status = 1;
+        
+        $log_stmt = mysqli_prepare($con, "INSERT INTO userlog(userEmail, userip, status) VALUES(?, ?, ?)");
+        mysqli_stmt_bind_param($log_stmt, "ssi", $email, $uip, $status);
+        mysqli_stmt_execute($log_stmt);
+        mysqli_stmt_close($log_stmt);
+        
+        header("location:my-cart.php");
+        exit();
+    } else {
+        $uip = $_SERVER['REMOTE_ADDR'];
+        $status = 0;
+        $log_stmt = mysqli_prepare($con, "INSERT INTO userlog(userEmail, userip, status) VALUES(?, ?, ?)");
+        mysqli_stmt_bind_param($log_stmt, "ssi", $email, $uip, $status);
+        mysqli_stmt_execute($log_stmt);
+        mysqli_stmt_close($log_stmt);
+        
+        $_SESSION['errmsg'] = "Invalid email id or Password";
+        header("location:login.php");
+        exit();
+    }
+    mysqli_stmt_close($stmt);
 }
 
 
