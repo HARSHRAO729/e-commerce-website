@@ -12,6 +12,10 @@
       "dest": "/$1/$2"
     },
     {
+      "src": "/admin/(assets|scripts|productimages)/(.*)",
+      "dest": "/admin/$1/$2"
+    },
+    {
       "src": "/admin/(.*)",
       "dest": "/api/admin/$1"
     },
